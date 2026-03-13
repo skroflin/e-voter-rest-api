@@ -5,17 +5,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
 
-public enum ElectionStatus {
-
-    PREPARATION("Preparation", 1),
-    ACTIVE("Active", 2),
-    CLOSED("Closed", 3),
+public enum Role {
+    ROLE_SUPER_ADMIN("Super admin", 1),
+    ROLE_ELECTION_ADMIN("Active", 2),
     UNKNOWN("Unknown", -1);
 
     private final String name;
     private final int value;
 
-    ElectionStatus(String name, int value) {
+    Role(String name, int value) {
         this.name = name;
         this.value = value;
     }
@@ -29,7 +27,7 @@ public enum ElectionStatus {
     }
 
     @JsonCreator
-    public static ElectionStatus fromValue(Integer value) {
+    public static Role fromValue(Integer value) {
         if (value == null) return null;
         return Arrays.stream(values())
                 .filter(r -> r.value == value)
@@ -42,7 +40,7 @@ public enum ElectionStatus {
         return name;
     }
 
-    public static ElectionStatus get(int value) {
+    public static Role get(int value) {
         return fromValue(value);
     }
 }

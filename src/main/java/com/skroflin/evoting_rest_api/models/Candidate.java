@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,13 +18,31 @@ public class Candidate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "candidate_uuid")
     private UUID candidateUUID;
-    @Column(nullable = false)
+
+    @Column(
+            nullable = false,
+            columnDefinition = "varchar",
+            name = "candidate_fullname"
+    )
     private String candidateFullName;
-    @Column(name = "bio", nullable = false)
+
+    @Column(
+            name = "bio",
+            nullable = false,
+            columnDefinition = "text"
+    )
     private String description;
-    private Timestamp createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "election_uuid", nullable = false)
     private Election election;
+
+    @Column(
+            name = "created_at",
+            columnDefinition = "timestamp"
+    )
+    private LocalDateTime createdAt = LocalDateTime.now();
+
 }
