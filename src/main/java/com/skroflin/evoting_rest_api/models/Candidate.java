@@ -1,0 +1,29 @@
+package com.skroflin.evoting_rest_api.models;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.sql.Timestamp;
+import java.util.UUID;
+
+@Entity
+@Table(name = "candidates")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Candidate {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID candidateUUID;
+    @Column(nullable = false)
+    private String candidateFullName;
+    @Column(name = "bio", nullable = false)
+    private String description;
+    private Timestamp createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "election_uuid", nullable = false)
+    private Election election;
+}
