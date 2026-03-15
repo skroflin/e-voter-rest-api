@@ -8,6 +8,7 @@ import java.util.Arrays;
 public enum Role {
     ROLE_SUPER_ADMIN("Super admin", 1),
     ROLE_ELECTION_ADMIN("Active", 2),
+    ROLE_VOTER("Voter", 3),
     UNKNOWN("Unknown", -1);
 
     private final String name;

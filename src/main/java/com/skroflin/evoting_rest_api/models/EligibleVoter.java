@@ -1,9 +1,7 @@
 package com.skroflin.evoting_rest_api.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.skroflin.evoting_rest_api.enums.Role;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,13 +17,24 @@ import java.util.UUID;
 public class EligibleVoter {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "voter_uuid")
     private UUID voterUUID;
+
+    @Column(name = "first_name", columnDefinition = "varchar")
+    private String firstName;
+
+    @Column(name = "last_name", columnDefinition = "varchar")
+    private String lastName;
+
+    @Column(columnDefinition = "varchar")
+    private String username;
 
     @Column(
             columnDefinition = "varchar",
-            name = "ldap_UUID_hash"
+            name = "password_hash"
     )
-    private String ldapUUIDHash;
+    private String passwordHash;
 
     @Column(name = "is_token_issued")
     private boolean tokenIssued = false;
@@ -35,6 +44,8 @@ public class EligibleVoter {
             columnDefinition = "timestamp"
     )
     private LocalDateTime tokenIssuedAt;
+
+    private Role role;
 
     @Column(
             name = "created_at",
