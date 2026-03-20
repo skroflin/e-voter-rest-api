@@ -21,18 +21,25 @@ public class EligibleVoter {
     @Column(name = "voter_uuid")
     private UUID voterUUID;
 
-    @Column(name = "first_name", columnDefinition = "varchar")
+    @Column(name = "first_name", columnDefinition = "varchar", nullable = false)
     private String firstName;
 
-    @Column(name = "last_name", columnDefinition = "varchar")
+    @Column(name = "last_name", columnDefinition = "varchar", nullable = false)
     private String lastName;
 
-    @Column(columnDefinition = "varchar")
+    @Column(columnDefinition = "varchar", unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "is_enabled")
+    private boolean isEnabled;
+
+    @Column(columnDefinition = "varchar", unique = true, nullable = false)
     private String username;
 
     @Column(
             columnDefinition = "varchar",
-            name = "password_hash"
+            name = "password_hash",
+            nullable = false
     )
     private String passwordHash;
 

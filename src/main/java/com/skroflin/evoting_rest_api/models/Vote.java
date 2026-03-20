@@ -20,6 +20,10 @@ public class Vote {
     @Column(name = "vote_uuid")
     private UUID voteUUID;
 
+    @OneToOne
+    @JoinColumn(name = "token_hash", referencedColumnName = "token_hash", nullable = false)
+    private UsedToken usedToken;
+
     @ManyToOne
     @JoinColumn(name = "election_uuid")
     private Election election;

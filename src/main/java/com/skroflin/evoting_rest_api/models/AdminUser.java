@@ -21,6 +21,7 @@ public class AdminUser {
     @Column(name = "admin_uuid")
     private UUID adminUUID;
 
+    @Column(unique = true)
     private String username;
 
     @Column(name = "password_hash")
