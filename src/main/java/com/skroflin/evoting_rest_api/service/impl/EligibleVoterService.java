@@ -7,6 +7,7 @@ import com.skroflin.evoting_rest_api.models.UserVerification;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
 import com.skroflin.evoting_rest_api.service.AuthService;
+import com.skroflin.evoting_rest_api.service.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ public class EligibleVoterService implements AuthService {
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserVerificationRepository userVerificationRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -37,6 +39,8 @@ public class EligibleVoterService implements AuthService {
         EligibleVoter savedVoter = eligibleVoterRepository.save(newVoter);
         String code = generateVerificationCode();
         saveVerificationCode(savedVoter, code);
+
+        emailService.sendVerificationEmail(registerRequest.getEmail(), code);
 
         return "Verification code sent to" + " " + registerRequest.getEmail();
     }

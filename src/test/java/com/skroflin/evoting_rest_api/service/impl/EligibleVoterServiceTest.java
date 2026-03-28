@@ -5,6 +5,7 @@ import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
+import com.skroflin.evoting_rest_api.service.EmailService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,8 @@ public class EligibleVoterServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private UserVerificationRepository userVerificationRepository;
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private EligibleVoterService eligibleVoterService;
@@ -65,5 +68,6 @@ public class EligibleVoterServiceTest {
         assertTrue(result.contains("Verification code sent"));
         verify(eligibleVoterRepository, times(1)).save(any());
         verify(userVerificationRepository, times(1)).save(any());
+        verify(emailService, times(1)).sendVerificationEmail(eq("skroflin@ffos.hr"), anyString());
     }
 }
