@@ -1,6 +1,6 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
-import com.skroflin.evoting_rest_api.dto.RegisterRequest;
+import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;

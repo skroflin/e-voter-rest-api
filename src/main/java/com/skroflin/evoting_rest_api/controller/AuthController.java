@@ -1,6 +1,6 @@
 package com.skroflin.evoting_rest_api.controller;
 
-import com.skroflin.evoting_rest_api.dto.RegisterRequest;
+import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

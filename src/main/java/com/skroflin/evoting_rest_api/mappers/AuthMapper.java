@@ -1,10 +1,9 @@
 package com.skroflin.evoting_rest_api.mappers;
 
-import com.skroflin.evoting_rest_api.dto.RegisterRequest;
+import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = "spring")
 public interface AuthMapper {

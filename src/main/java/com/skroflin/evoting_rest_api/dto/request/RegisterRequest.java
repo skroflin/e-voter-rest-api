@@ -1,4 +1,4 @@
-package com.skroflin.evoting_rest_api.dto;
+package com.skroflin.evoting_rest_api.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

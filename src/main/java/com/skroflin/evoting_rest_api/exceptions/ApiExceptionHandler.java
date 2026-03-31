@@ -57,4 +57,8 @@ public class ApiExceptionHandler {
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+    // TODO: Add other exception handlers for handling user registration
+
+    // TODO: Add exception handlers for verification code exceptions
 }

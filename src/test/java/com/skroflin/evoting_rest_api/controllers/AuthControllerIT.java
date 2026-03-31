@@ -2,12 +2,10 @@ package com.skroflin.evoting_rest_api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.skroflin.evoting_rest_api.dto.RegisterRequest;
+import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
-import com.skroflin.evoting_rest_api.service.EmailService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Email;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;

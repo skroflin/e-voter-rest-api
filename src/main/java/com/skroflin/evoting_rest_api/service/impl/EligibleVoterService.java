@@ -3,7 +3,7 @@ package com.skroflin.evoting_rest_api.service.impl;
 import com.skroflin.evoting_rest_api.exceptions.InvalidEmailDomainException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
-import com.skroflin.evoting_rest_api.dto.RegisterRequest;
+import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.models.UserVerification;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
@@ -67,6 +67,10 @@ public class EligibleVoterService implements AuthService {
             throw new IllegalArgumentException("The password must have at least 8 symbols");
         }
     }
+
+    /*
+        TODO: Add validation method for User Verification via "verification code"
+     */
 
     private String generateVerificationCode() {
         return String.valueOf(new Random().nextInt(900000) + 100000);
