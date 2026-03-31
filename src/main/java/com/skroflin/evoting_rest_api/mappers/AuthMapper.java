@@ -6,12 +6,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = "spring")
 public interface AuthMapper {
 
     @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "voterUUID", ignore = true)
-    @Mapping(target = "isEnabled", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "role", ignore = true)
     EligibleVoter toEntity(RegisterRequest registerRequest);
 }

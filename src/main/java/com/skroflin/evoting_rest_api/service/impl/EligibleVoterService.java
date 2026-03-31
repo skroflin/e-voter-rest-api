@@ -1,5 +1,6 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.exceptions.InvalidEmailDomainException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.dto.RegisterRequest;
@@ -51,10 +52,10 @@ public class EligibleVoterService implements AuthService {
         }
 
         if (registerRequest.getEmail() == null || !registerRequest.getEmail().endsWith("@ffos.hr")) {
-            throw new IllegalArgumentException("@ffos.hr domain is only allowed");
+            throw new InvalidEmailDomainException("@ffos.hr domain is only allowed");
         }
 
-        if (eligibleVoterRepository.existbyEmail(registerRequest.getEmail())) {
+        if (eligibleVoterRepository.existsByEmail(registerRequest.getEmail())) {
             throw new IllegalArgumentException("This email is already taken");
         }
 

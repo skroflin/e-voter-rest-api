@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface EligibleVoterRepository extends JpaRepository<EligibleVoter, UUID> {
 
     Optional<EligibleVoter> findByUsername(String username);
-    boolean existbyEmail(String email);
+    boolean existsByEmail(String email);
     boolean existsByUsername(String username);
     Optional<EligibleVoter> findByEmail(String email);
 }

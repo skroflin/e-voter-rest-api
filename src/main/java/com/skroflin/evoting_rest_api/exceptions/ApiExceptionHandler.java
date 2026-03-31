@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler(value = {IllegalArgumentException.class, InvalidEmailDomainException.class})
+    @ExceptionHandler(value = {InvalidEmailDomainException.class})
     public ResponseEntity<Object> handleInvalidEmailDomain(InvalidEmailDomainException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));

@@ -31,7 +31,7 @@ public class EligibleVoter {
     private String email;
 
     @Column(name = "is_enabled")
-    private boolean isEnabled;
+    private boolean enabled;
 
     @Column(columnDefinition = "varchar", unique = true, nullable = false)
     private String username;

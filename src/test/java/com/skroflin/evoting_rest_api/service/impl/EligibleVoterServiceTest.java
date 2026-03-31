@@ -57,7 +57,7 @@ public class EligibleVoterServiceTest {
         );
 
         EligibleVoter mockVoter = new EligibleVoter();
-        when(eligibleVoterRepository.existbyEmail(anyString())).thenReturn(false);
+        when(eligibleVoterRepository.existsByEmail(anyString())).thenReturn(false);
         when(eligibleVoterRepository.existsByUsername(anyString())).thenReturn(false);
         when(authMapper.toEntity(any())).thenReturn(mockVoter);
         when(passwordEncoder.encode(anyString())).thenReturn("hashedPassword");

@@ -15,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendVerificationEmail(String to, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("test@ffos.hr");
+        message.setFrom("noreply@test-51ndgwv8rvqlzqx8.mlsender.net");
         message.setTo(to);
         message.setSubject("E-voting: Verification code");
         message.setText(
