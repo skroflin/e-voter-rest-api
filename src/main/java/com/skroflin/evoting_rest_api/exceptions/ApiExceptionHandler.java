@@ -1,5 +1,8 @@
 package com.skroflin.evoting_rest_api.exceptions;
 
+import com.skroflin.evoting_rest_api.exceptions.user.*;
+import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
+import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -16,8 +19,29 @@ import java.time.ZonedDateTime;
 @ControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {InvalidPasswordException.class})
+    public ResponseEntity<Object> handleInvalidPassword(InvalidPasswordException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
     @ExceptionHandler(value = {InstanceNotFoundException.class, EmptyResultDataAccessException.class, UserNotFoundException.class})
     public ResponseEntity<Object> handleUserNotFound(UserNotFoundException e) {
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {InstanceNotFoundException.class, EmptyResultDataAccessException.class, ResourceNotFoundException.class})
+    public ResponseEntity<Object> handleResourceNotFound(ResourceNotFoundException e) {
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
@@ -44,6 +68,13 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+    @ExceptionHandler(value = {EmailAlreadyTakenException.class, DataIntegrityViolationException.class})
+    public ResponseEntity<Object> handleEmailAlreadyTaken(EmailAlreadyTakenException e) {
+        HttpStatus httpStatus = HttpStatus.CONFLICT;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
     @ExceptionHandler(value = {UserLoginException.class, BadCredentialsException.class})
     public ResponseEntity<Object> handleUserLogin(BadCredentialsException e) {
         HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
@@ -61,4 +92,18 @@ public class ApiExceptionHandler {
     // TODO: Add other exception handlers for handling user registration
 
     // TODO: Add exception handlers for verification code exceptions
+
+    @ExceptionHandler(value = {InvalidVerificationCodeException.class})
+    public ResponseEntity<Object> handleInvalidVerificationCodeException(InvalidVerificationCodeException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {VerificationCodeExpiredException.class})
+    public ResponseEntity<Object> handleVerificationCodeException(VerificationCodeExpiredException e) {
+        HttpStatus httpStatus = HttpStatus.GONE;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
 }

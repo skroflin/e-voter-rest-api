@@ -1,6 +1,13 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
-import com.skroflin.evoting_rest_api.exceptions.InvalidEmailDomainException;
+import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
+import com.skroflin.evoting_rest_api.exceptions.user.EmailAlreadyTakenException;
+import com.skroflin.evoting_rest_api.exceptions.user.InvalidEmailDomainException;
+import com.skroflin.evoting_rest_api.exceptions.user.InvalidPasswordException;
+import com.skroflin.evoting_rest_api.exceptions.user.UserAlreadyExistsException;
+import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
+import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
@@ -46,6 +53,22 @@ public class EligibleVoterService implements AuthService {
         return "Verification code sent to" + " " + registerRequest.getEmail();
     }
 
+    @Override
+    @Transactional
+    public void verifyVoter(VerificationRequest verificationRequest) {
+        EligibleVoter eligibleVoter = eligibleVoterRepository.findByEmail(verificationRequest.email())
+                .orElseThrow(() -> new ResourceNotFoundException("Voter not found"));
+
+        UserVerification userVerification = userVerificationRepository.findByEligibleVoter(eligibleVoter)
+                .orElseThrow(() -> new InvalidVerificationCodeException("No verification code found"));
+
+        validateVoter(userVerification, eligibleVoter, verificationRequest.code());
+        eligibleVoter.setEnabled(true);
+        eligibleVoterRepository.save(eligibleVoter);
+
+        userVerificationRepository.delete(userVerification);
+    }
+
     private void validateRegistration(RegisterRequest registerRequest) {
         if (registerRequest == null) {
             throw new IllegalArgumentException("Registration data musn't be null");
@@ -56,15 +79,27 @@ public class EligibleVoterService implements AuthService {
         }
 
         if (eligibleVoterRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new IllegalArgumentException("This email is already taken");
+            throw new EmailAlreadyTakenException("This email is already taken");
         }
 
         if (eligibleVoterRepository.existsByUsername(registerRequest.getUsername())) {
-            throw new IllegalArgumentException("This username is already taken");
+            throw new UserAlreadyExistsException("This username is already taken");
         }
 
         if (registerRequest.getPassword().length() < 8) {
-            throw new IllegalArgumentException("The password must have at least 8 symbols");
+            throw new InvalidPasswordException("The password must have at least 8 symbols");
+        }
+    }
+
+    private void validateVoter(UserVerification userVerification, EligibleVoter eligibleVoter, String inputCode) {
+        if (eligibleVoter.isEnabled()) {
+            throw new IllegalArgumentException("Account is already verified");
+        }
+        if (!userVerification.getVerificationCode().equals(inputCode)) {
+            throw new InvalidVerificationCodeException("Invalid verification code");
+        }
+        if (userVerification.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new VerificationCodeExpiredException("Verification code has expired");
         }
     }
 
