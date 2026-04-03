@@ -3,7 +3,6 @@ package com.skroflin.evoting_rest_api.exceptions;
 import com.skroflin.evoting_rest_api.exceptions.user.*;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,13 +32,6 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler(value = {InstanceNotFoundException.class, EmptyResultDataAccessException.class, UserNotFoundException.class})
-    public ResponseEntity<Object> handleUserNotFound(UserNotFoundException e) {
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
-        return new ResponseEntity<>(apiException, httpStatus);
-    }
-
     @ExceptionHandler(value = {InstanceNotFoundException.class, EmptyResultDataAccessException.class, ResourceNotFoundException.class})
     public ResponseEntity<Object> handleResourceNotFound(ResourceNotFoundException e) {
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
@@ -61,14 +53,14 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler(value = {UserAlreadyExistsException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler(value = {UserAlreadyExistsException.class})
     public ResponseEntity<Object> handleUserAlreadyExists(UserAlreadyExistsException e) {
         HttpStatus httpStatus = HttpStatus.CONFLICT;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler(value = {EmailAlreadyTakenException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler(value = {EmailAlreadyTakenException.class})
     public ResponseEntity<Object> handleEmailAlreadyTaken(EmailAlreadyTakenException e) {
         HttpStatus httpStatus = HttpStatus.CONFLICT;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
