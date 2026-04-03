@@ -23,7 +23,7 @@ public class VoterValidator {
 
     public void validateRegistration(RegisterRequest registerRequest) {
         if (registerRequest == null) {
-            throw new IllegalArgumentException("Registration data musn't be null");
+            throw new IllegalArgumentException("Registration data mustn't be null");
         }
 
         if (registerRequest.getEmail() == null || !registerRequest.getEmail().endsWith("@ffos.hr")) {

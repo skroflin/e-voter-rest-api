@@ -2,12 +2,7 @@ package com.skroflin.evoting_rest_api.service.impl;
 
 import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
-import com.skroflin.evoting_rest_api.exceptions.user.EmailAlreadyTakenException;
-import com.skroflin.evoting_rest_api.exceptions.user.InvalidEmailDomainException;
-import com.skroflin.evoting_rest_api.exceptions.user.InvalidPasswordException;
-import com.skroflin.evoting_rest_api.exceptions.user.UserAlreadyExistsException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
-import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
