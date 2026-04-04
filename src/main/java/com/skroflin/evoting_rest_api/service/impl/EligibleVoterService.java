@@ -1,6 +1,9 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.config.jwt.JwtService;
+import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
 import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.dto.response.LoginResponse;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
@@ -15,6 +18,8 @@ import com.skroflin.evoting_rest_api.service.validation.VerificationHelper;
 import com.skroflin.evoting_rest_api.service.validation.VoterValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +34,8 @@ public class EligibleVoterService implements AuthService {
     private final EmailService emailService;
     private final VoterValidator voterValidator;
     private final VerificationHelper verificationHelper;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
     @Transactional
@@ -64,5 +71,25 @@ public class EligibleVoterService implements AuthService {
         eligibleVoterRepository.save(eligibleVoter);
 
         userVerificationRepository.delete(userVerification);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        );
+
+        var voter = eligibleVoterRepository.findByUsername(request.username())
+                .or(() -> eligibleVoterRepository.findByEmail(request.username()))
+                .orElseThrow();
+        String jwtToken = jwtService.generateToken(voter);
+
+        return LoginResponse.builder()
+                .token(jwtToken)
+                .type("bearer")
+                .expiresIn(jwtService.getExpirationTime())
+                .username(voter.getUsername())
+                .role(voter.getRole().getName())
+                .build();
     }
 }

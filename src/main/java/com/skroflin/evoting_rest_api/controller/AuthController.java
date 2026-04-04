@@ -1,7 +1,9 @@
 package com.skroflin.evoting_rest_api.controller;
 
+import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
 import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.dto.response.LoginResponse;
 import com.skroflin.evoting_rest_api.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +31,10 @@ public class AuthController {
     public ResponseEntity<String> verify(@Valid @RequestBody VerificationRequest verificationRequest) {
         authService.verifyVoter(verificationRequest);
         return ResponseEntity.ok("Verification successful, you can now log in.");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(authService.login(loginRequest));
     }
 }
