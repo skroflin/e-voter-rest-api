@@ -3,12 +3,15 @@ package com.skroflin.evoting_rest_api.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
 import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.enums.Role;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.models.UserVerification;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
+import io.jsonwebtoken.security.Password;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,6 +48,9 @@ public class AuthControllerIT {
 
     @Autowired
     private UserVerificationRepository userVerificationRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
@@ -86,6 +93,7 @@ public class AuthControllerIT {
     }
 
     @Test
+    @DisplayName("POST /verify - Should return 201")
     void verifyVoterSuccess() throws Exception {
         RegisterRequest registerRequest = new RegisterRequest(
                 "Sven", "Kroflin", "skroflin@ffos.hr", "skroflin", "ZTKuawVX9Ei7xGOD"
@@ -119,6 +127,7 @@ public class AuthControllerIT {
     }
 
     @Test
+    @DisplayName("POST /verify - Should return 400")
     void verifyVoterFailure() throws Exception {
         RegisterRequest registerRequest = new RegisterRequest(
                 "Sven", "Kroflin", "skroflin@ffos.hr", "skroflin", "ZTKuawVX9Ei7xGOD"
@@ -139,5 +148,81 @@ public class AuthControllerIT {
 
         EligibleVoter mockVoter = eligibleVoterRepository.findByEmail("skroflin@ffos.hr").get();
         assertFalse(mockVoter.isEnabled());
+    }
+
+    @Test
+    @DisplayName("POST /login - Should return 200 and JWT")
+    void loginSuccess() throws Exception {
+        EligibleVoter testVoter = new EligibleVoter();
+        testVoter.setFirstName("Sven");
+        testVoter.setLastName("Kroflin");
+        testVoter.setEmail("skroflin@ffos.hr");
+        testVoter.setUsername("skroflin_test");
+        testVoter.setPasswordHash(passwordEncoder.encode("iP3tXO6sF6qSTofv"));
+        testVoter.setEnabled(true);
+        testVoter.setRole(Role.ROLE_VOTER);
+        eligibleVoterRepository.save(testVoter);
+
+        LoginRequest testLoginRequest = new LoginRequest(
+                "skroflin_test", "iP3tXO6sF6qSTofv"
+        );
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(testLoginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists())
+                .andExpect(jsonPath("$.type").value("bearer"))
+                .andExpect(jsonPath("$.username").value("skroflin_test"))
+                .andExpect(jsonPath("$.role").value("Voter"));
+    }
+
+    @Test
+    @DisplayName("POST /login - Should return 401 for wrong password")
+    void loginFailureWrongPassword() throws Exception {
+        EligibleVoter testVoter = new EligibleVoter();
+        testVoter.setFirstName("Sven");
+        testVoter.setLastName("Kroflin");
+        testVoter.setEmail("skroflin@ffos.hr");
+        testVoter.setUsername("skroflin_test");
+        testVoter.setPasswordHash(passwordEncoder.encode("iP3tXO6sF6qSTofv"));
+        testVoter.setEnabled(true);
+        testVoter.setRole(Role.ROLE_VOTER);
+        eligibleVoterRepository.save(testVoter);
+
+        LoginRequest testLoginRequest = new LoginRequest(
+                "skroflin_test", "vAwanpk1JCvw6OYR"
+        );
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(testLoginRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /login - Should return 403 for non-enabled user")
+    void loginFailureNotEnabledUser() throws Exception {
+        EligibleVoter testVoter = new EligibleVoter();
+        testVoter.setFirstName("Sven");
+        testVoter.setLastName("Kroflin");
+        testVoter.setEmail("skroflin@ffos.hr");
+        testVoter.setUsername("skroflin_test");
+        testVoter.setPasswordHash(passwordEncoder.encode("iP3tXO6sF6qSTofv"));
+        testVoter.setEnabled(false);
+        testVoter.setRole(Role.ROLE_VOTER);
+        eligibleVoterRepository.save(testVoter);
+
+        LoginRequest testLoginRequest = new LoginRequest(
+                "skroflin_test", "iP3tXO6sF6qSTofv"
+        );
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testLoginRequest)))
+                .andExpect(status().isForbidden());
     }
 }

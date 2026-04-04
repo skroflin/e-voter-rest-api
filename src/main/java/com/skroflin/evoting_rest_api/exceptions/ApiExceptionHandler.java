@@ -18,6 +18,13 @@ import java.time.ZonedDateTime;
 @ControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentials(BadCredentialsException e) {
+        HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
@@ -63,13 +70,6 @@ public class ApiExceptionHandler {
     @ExceptionHandler(value = {EmailAlreadyTakenException.class})
     public ResponseEntity<Object> handleEmailAlreadyTaken(EmailAlreadyTakenException e) {
         HttpStatus httpStatus = HttpStatus.CONFLICT;
-        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
-        return new ResponseEntity<>(apiException, httpStatus);
-    }
-
-    @ExceptionHandler(value = {UserLoginException.class, BadCredentialsException.class})
-    public ResponseEntity<Object> handleUserLogin(BadCredentialsException e) {
-        HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }
