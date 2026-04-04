@@ -1,9 +1,7 @@
 package com.skroflin.evoting_rest_api.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -35,6 +33,8 @@ public class Candidate {
     )
     private String description;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "election_uuid", nullable = false)
     private Election election;
