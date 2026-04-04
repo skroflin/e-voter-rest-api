@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.util.Optional;
@@ -66,15 +68,45 @@ public class LoginEligibleVoterServiceTest {
     @Test
     void Login_returnFailureWhenInvalidCredentials() {
         // TODO: add test for invalid credentials
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("Invalid credentials"));
+
+        assertThrows(BadCredentialsException.class, () -> {
+            eligibleVoterService.login(testLoginRequest);
+        });
+
+        verifyNoInteractions(jwtService);
     }
 
     @Test
     void Login_returnDisabledWhenUserNotEnabled() {
         // TODO: add test for non enabled user
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new DisabledException("User is disabled"));
+
+        assertThrows(DisabledException.class, () -> {
+            eligibleVoterService.login(testLoginRequest);
+        });
     }
 
     @Test
     void Login_whenLoggingInWithEmail() {
         // TODO: add test for logging in with email
+        LoginRequest testEmailRequest = new LoginRequest(
+                "skroflin@ffos.hr", "MQPePryZ2jDzryLo"
+        );
+
+        when(eligibleVoterRepository.findByUsername("skroflin@ffos.hr")).thenReturn(Optional.empty());
+        when(eligibleVoterRepository.findByEmail("skroflin@ffos.hr")).thenReturn(Optional.of(testVoter));
+
+        when(jwtService.generateToken(any())).thenReturn("token-from-mail");
+        when(jwtService.getExpirationTime()).thenReturn(7200000L);
+
+        LoginResponse testResponse = eligibleVoterService.login(testEmailRequest);
+
+        assertEquals("token-from-mail", testResponse.token());
+        verify(eligibleVoterRepository).findByUsername("skroflin@ffos.hr");
+        verify(eligibleVoterRepository).findByEmail("skroflin@ffos.hr");
+        verify(authenticationManager).authenticate(any());
     }
 }
