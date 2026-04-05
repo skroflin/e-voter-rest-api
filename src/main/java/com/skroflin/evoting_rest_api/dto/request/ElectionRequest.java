@@ -7,7 +7,7 @@ import java.util.List;
 
 public record ElectionRequest(
         @NotBlank(message = "Title is mandatory")
-        @Size(min = 3, max = 10)
+        @Size(min = 3, max = 20)
         String title,
 
         @NotBlank(message = "Description is mandatory")

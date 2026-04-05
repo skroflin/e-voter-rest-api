@@ -1,6 +1,5 @@
 package com.skroflin.evoting_rest_api.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
@@ -11,7 +10,6 @@ import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.models.UserVerification;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
-import io.jsonwebtoken.security.Password;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ElectionController {
 
-    private ElectionService electionService;
+    private final ElectionService electionService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

@@ -10,7 +10,7 @@ import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = {com.skroflin.evoting_rest_api.enums.ElectionStatus.class})
+@Mapper(componentModel = "spring", uses = {CandidateMapper.class}, imports = {com.skroflin.evoting_rest_api.enums.ElectionStatus.class})
 public interface ElectionMapper {
 
     @Mapping(target = "electionName", source = "title")
