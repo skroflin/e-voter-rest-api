@@ -8,8 +8,8 @@ public record ElectionResponse(
         UUID id,
         String title,
         String description,
-        LocalDateTime startDate,
-        LocalDateTime endDate,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
         List<CandidateResponse> candidates,
         boolean isActive
 ) {

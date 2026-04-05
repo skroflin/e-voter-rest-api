@@ -10,19 +10,20 @@ import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {com.skroflin.evoting_rest_api.enums.ElectionStatus.class})
 public interface ElectionMapper {
 
     @Mapping(target = "electionName", source = "title")
     @Mapping(target = "description", source = "description")
-    @Mapping(target = "electionStartDate", source = "startDate")
-    @Mapping(target = "electionEndDate", source = "endDate")
+    @Mapping(target = "electionStartTime", source = "startDate")
+    @Mapping(target = "electionEndTime", source = "endDate")
     Election toEntity(ElectionRequest electionRequest);
 
     @Mapping(target = "id", source = "electionUUID")
     @Mapping(target = "title", source = "electionName")
-    @Mapping(target = "startDate", source = "electionStartDate")
-    @Mapping(target = "endDate", source = "electionEndDate")
+    @Mapping(target = "startTime", source = "electionStartTime")
+    @Mapping(target = "endTime", source = "electionEndTime")
+    @Mapping(target = "isActive", expression = "java(election.getElectionStatus() == ElectionStatus.PREPARATION)")
     ElectionResponse toResponse(Election election);
 
     List<ElectionResponse> toResponseList(List<Election> elections);

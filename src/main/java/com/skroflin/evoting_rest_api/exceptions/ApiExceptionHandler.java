@@ -1,5 +1,7 @@
 package com.skroflin.evoting_rest_api.exceptions;
 
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionAlreadyExistsException;
+import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
 import com.skroflin.evoting_rest_api.exceptions.user.*;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
@@ -95,6 +97,20 @@ public class ApiExceptionHandler {
     @ExceptionHandler(value = {VerificationCodeExpiredException.class})
     public ResponseEntity<Object> handleVerificationCodeException(VerificationCodeExpiredException e) {
         HttpStatus httpStatus = HttpStatus.GONE;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {ElectionAlreadyExistsException.class})
+    public ResponseEntity<Object> handleElectionAlreadyExistsException(ElectionAlreadyExistsException e) {
+        HttpStatus httpStatus = HttpStatus.CONFLICT;
+        ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {InvalidElectionException.class})
+    public ResponseEntity<Object> handleInvalidElectionException(InvalidElectionException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }

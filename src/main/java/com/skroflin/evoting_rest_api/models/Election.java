@@ -39,13 +39,13 @@ public class Election {
             name = "election_start_time",
             columnDefinition = "timestamp"
     )
-    private LocalDate electionStartTime;
+    private LocalDateTime electionStartTime;
 
     @Column(
             name = "election_end_time",
             columnDefinition = "timestamp"
     )
-    private LocalDate electionEndTime;
+    private LocalDateTime electionEndTime;
 
     @Column(
             columnDefinition = "varchar",
