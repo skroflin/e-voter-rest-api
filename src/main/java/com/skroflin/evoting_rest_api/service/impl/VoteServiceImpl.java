@@ -15,6 +15,7 @@ import com.skroflin.evoting_rest_api.repository.CandidateRepository;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import com.skroflin.evoting_rest_api.repository.UsedTokenRepository;
 import com.skroflin.evoting_rest_api.repository.VoteRepository;
+import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import static com.skroflin.evoting_rest_api.util.HashingUtils.*;
 @RequiredArgsConstructor
 public class VoteServiceImpl implements VoteService {
 
+    private final CryptoService cryptoService;
     private final VoteRepository voteRepository;
     private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
@@ -49,6 +51,9 @@ public class VoteServiceImpl implements VoteService {
         vote.setUsedToken(savedToken);
         vote.setCastAt(LocalDateTime.now());
         vote.setCreatedAt(LocalDateTime.now());
+
+        String signature = cryptoService.generateSignature(vote);
+        vote.setSignature(signature);
 
         Vote savedVote = voteRepository.save(vote);
 

@@ -43,4 +43,7 @@ public class Vote {
             columnDefinition = "timestamp"
     )
     private LocalDateTime createdAt;
+
+    @Column(columnDefinition = "text")
+    private String signature;
 }

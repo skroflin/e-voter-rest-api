@@ -13,6 +13,7 @@ import com.skroflin.evoting_rest_api.repository.CandidateRepository;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import com.skroflin.evoting_rest_api.repository.UsedTokenRepository;
 import com.skroflin.evoting_rest_api.repository.VoteRepository;
+import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.util.HashingUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,8 @@ public class VoteServiceImplTest {
     private CandidateRepository candidateRepository;
     @Mock
     private UsedTokenRepository usedTokenRepository;
+    @Mock
+    private CryptoService cryptoService;
 
     @InjectMocks
     private VoteServiceImpl voteService;
@@ -78,6 +81,8 @@ public class VoteServiceImplTest {
         mockSavedVote.setVoteUUID(UUID.randomUUID());
         mockSavedVote.setCastAt(LocalDateTime.now());
         mockSavedVote.setElection(mockElection);
+
+        when(cryptoService.generateSignature(any(Vote.class))).thenReturn("mock-signature-12345");
 
         when(usedTokenRepository.save(any(UsedToken.class))).thenAnswer(i -> i.getArguments()[0]);
         when(voteRepository.save(any(Vote.class))).thenReturn(mockSavedVote);

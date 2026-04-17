@@ -136,4 +136,18 @@ public class ApiExceptionHandler {
         ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+    @ExceptionHandler(CriticalSignatureErrorException.class)
+    public ResponseEntity<Object> handleCriticalSignatureErrorException(CriticalSignatureErrorException ex) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(VerifySignatureException.class)
+    public ResponseEntity<Object> handleSignatureVerificationException(VerifySignatureException ex) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
 }
