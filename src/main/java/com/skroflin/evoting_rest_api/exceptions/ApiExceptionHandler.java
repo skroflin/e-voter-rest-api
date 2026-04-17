@@ -1,6 +1,7 @@
 package com.skroflin.evoting_rest_api.exceptions;
 
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionAlreadyExistsException;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
 import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
 import com.skroflin.evoting_rest_api.exceptions.user.*;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
@@ -112,6 +113,27 @@ public class ApiExceptionHandler {
     public ResponseEntity<Object> handleInvalidElectionException(InvalidElectionException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         ApiException apiException = new ApiException(e.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(ElectionNotOpenException.class)
+    public ResponseEntity<Object> handleElectionNotOpen(ElectionNotOpenException ex) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(TokenAlreadyUsedException.class)
+    public ResponseEntity<Object> handleTokenAlreadyUsed(TokenAlreadyUsedException ex) {
+        HttpStatus httpStatus = HttpStatus.CONFLICT;
+        ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(VotingException.class)
+    public ResponseEntity<Object> handleGeneralVotingException(VotingException ex) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        ApiException apiException = new ApiException(ex.getMessage(), httpStatus, ZonedDateTime.now(ZoneId.of("Z")));
         return new ResponseEntity<>(apiException, httpStatus);
     }
 }
