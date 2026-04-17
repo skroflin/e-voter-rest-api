@@ -12,9 +12,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,5 +80,37 @@ public class ElectionServiceImplTest {
 
         assertThrows(InvalidElectionException.class, () -> electionService.createElection(electionRequest));
         verify(electionRepository, never()).save(election);
+    }
+
+    @Test
+    void getAllElections_Success() {
+        Pageable mockPageable = PageRequest.of(0, 10);
+        List<Election> mockElections = List.of(new Election(), new Election());
+        Page<Election> mockElectionPage = new PageImpl<>(mockElections, mockPageable, mockElections.size());
+
+        when(electionRepository.findAll(mockPageable)).thenReturn(mockElectionPage);
+        when(electionMapper.toResponse(any(Election.class))).thenReturn(mock(ElectionResponse.class));
+
+        Page<ElectionResponse> result = electionService.getAllElections(mockPageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        verify(electionRepository).findAll(mockPageable);
+    }
+
+    @Test
+    void getElectionById_success() {
+        UUID mockId = UUID.randomUUID();
+        Election mockElection = new Election();
+        mockElection.setElectionUUID(mockId);
+
+        when(electionRepository.findById(mockId)).thenReturn(Optional.of(mockElection));
+        when(electionMapper.toResponse(mockElection)).thenReturn(new ElectionResponse(
+                mockId, "Test Election", "Test description", null, null, List.of(), true
+        ));
+
+        ElectionResponse mockResult = electionService.getElectionById(mockId);
+
+        assertEquals(mockId, mockResult.id());
     }
 }

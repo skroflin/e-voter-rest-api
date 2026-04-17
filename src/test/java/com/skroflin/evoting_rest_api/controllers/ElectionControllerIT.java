@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
+import com.skroflin.evoting_rest_api.enums.ElectionStatus;
+import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -68,5 +71,57 @@ public class ElectionControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(mockElectionRequest)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "VOTER")
+    @DisplayName("GET /elections - Should return paged elections")
+    void getAllElections_PagedSuccess() throws Exception {
+
+        Election mockElection = new Election();
+        mockElection.setElectionName("Test Election");
+        mockElection.setDescription("Test description");
+        mockElection.setElectionStartTime(LocalDateTime.now().plusDays(1));
+        mockElection.setElectionEndTime(LocalDateTime.now().plusDays(2));
+        mockElection.setElectionStatus(ElectionStatus.UNKNOWN);
+
+        electionRepository.save(mockElection);
+
+        mockMvc.perform(get("/api/v1/elections")
+                .param("page", "0")
+                .param("size", "5")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /elections/{id} - Return election by given id")
+    void getElectionById_Success() throws Exception {
+        Election mockElection = new Election();
+        mockElection.setElectionName("Test Election");
+        mockElection.setDescription("Test description");
+        mockElection.setElectionStartTime(LocalDateTime.now().plusDays(1));
+        mockElection.setElectionEndTime(LocalDateTime.now().plusDays(2));
+        mockElection.setElectionStatus(ElectionStatus.UNKNOWN);
+
+        Election savedElection = electionRepository.save(mockElection);
+
+        UUID mockId = savedElection.getElectionUUID();
+        mockMvc.perform(get("/api/v1/elections/{id}", mockId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(mockId.toString()));
+    }
+
+    @Test
+    @WithMockUser(roles = "VOTER")
+    @DisplayName("GET /elections/{id} - Return not found status")
+    void getElectionById_NotFound() throws Exception {
+        UUID randomMockId = UUID.randomUUID();
+        mockMvc.perform(get("/api/v1/elections/{id}", randomMockId))
+                .andExpect(status().isNotFound());
     }
 }
