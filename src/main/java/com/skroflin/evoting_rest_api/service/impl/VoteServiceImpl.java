@@ -1,11 +1,14 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.config.security.SecurityUtil;
 import com.skroflin.evoting_rest_api.dto.ValidatedVoteData;
 import com.skroflin.evoting_rest_api.dto.request.VoteRequest;
 import com.skroflin.evoting_rest_api.dto.response.CandidateResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.VoteResponse;
+import com.skroflin.evoting_rest_api.dto.response.VoterVoteHistoryResponse;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
+import com.skroflin.evoting_rest_api.exceptions.AlreadyVotedException;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.TokenAlreadyUsedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
@@ -13,13 +16,12 @@ import com.skroflin.evoting_rest_api.models.Candidate;
 import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.models.UsedToken;
 import com.skroflin.evoting_rest_api.models.Vote;
-import com.skroflin.evoting_rest_api.repository.CandidateRepository;
-import com.skroflin.evoting_rest_api.repository.ElectionRepository;
-import com.skroflin.evoting_rest_api.repository.UsedTokenRepository;
-import com.skroflin.evoting_rest_api.repository.VoteRepository;
+import com.skroflin.evoting_rest_api.repository.*;
 import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.service.VoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,9 +38,23 @@ public class VoteServiceImpl implements VoteService {
     private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
     private final UsedTokenRepository usedTokenRepository;
+    private final ElectionParticipationRepository electionParticipationRepository;
+
+    @Override
+    public Page<VoterVoteHistoryResponse> getVoterHistory(Pageable pageable) {
+        String email = SecurityUtil.getCurrentUserEmail();
+        return electionParticipationRepository.findHistoryByVoterEmail(email, pageable);
+    }
 
     @Override
     public VoteResponse castVote(UUID electionId, VoteRequest voteRequest) {
+
+        String currentUserEmail = SecurityUtil.getCurrentUserEmail();
+
+        if (electionParticipationRepository.existsByEligibleVoterEmailAndElectionElectionUUID(currentUserEmail, electionId)) {
+            throw new AlreadyVotedException("User already voted on this election");
+        }
+
         ValidatedVoteData voteData = validateAndGetVoteData(electionId, voteRequest);
 
         UsedToken usedToken = new UsedToken();

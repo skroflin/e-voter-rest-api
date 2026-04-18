@@ -35,6 +35,11 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+    @ExceptionHandler(AlreadyVotedException.class)
+    public ResponseEntity<Object> handleAlreadyVotedException(AlreadyVotedException e) {
+        return buildResponse(e.getMessage(), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception e) {
         return buildResponse("Unexpected error has occurred", HttpStatus.INTERNAL_SERVER_ERROR);
