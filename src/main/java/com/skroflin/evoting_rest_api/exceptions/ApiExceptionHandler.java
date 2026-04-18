@@ -1,5 +1,6 @@
 package com.skroflin.evoting_rest_api.exceptions;
 
+import com.skroflin.evoting_rest_api.exceptions.election.CandidateAlreadyExists;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionAlreadyExistsException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
 import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
@@ -52,6 +53,11 @@ public class ApiExceptionHandler {
         }
 
         return buildResponse(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CandidateAlreadyExists.class)
+    public ResponseEntity<Object> handleCandidateAlreadyExists(CandidateAlreadyExists e) {
+        return buildResponse(e.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(BadCredentialsException.class)

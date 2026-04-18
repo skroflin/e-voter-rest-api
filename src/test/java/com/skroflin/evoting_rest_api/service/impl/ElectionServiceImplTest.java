@@ -1,11 +1,16 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
+import com.skroflin.evoting_rest_api.enums.ElectionStatus;
+import com.skroflin.evoting_rest_api.exceptions.election.CandidateAlreadyExists;
 import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
 import com.skroflin.evoting_rest_api.mappers.ElectionMapper;
+import com.skroflin.evoting_rest_api.models.Candidate;
 import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
+import com.skroflin.evoting_rest_api.service.ElectionService;
 import com.skroflin.evoting_rest_api.service.validation.ElectionValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -112,5 +117,24 @@ public class ElectionServiceImplTest {
         ElectionResponse mockResult = electionService.getElectionById(mockId);
 
         assertEquals(mockId, mockResult.id());
+    }
+
+    @Test
+    void addCandidate_shouldThrowException_whenDuplicateName() {
+        UUID mockId = UUID.randomUUID();
+        Election mockElection = new Election();
+        mockElection.setElectionStatus(ElectionStatus.PREPARATION);
+
+        Candidate mockCandidate = new Candidate();
+        mockCandidate.setCandidateFullName("John Doe");
+        mockElection.getCandidates().add(mockCandidate);
+
+        CandidateRequest mockCandidateRequest = new CandidateRequest(
+                "John Doe", "Test bio"
+        );
+
+        when(electionRepository.findById(mockId)).thenReturn(Optional.of(mockElection));
+
+        assertThrows(CandidateAlreadyExists.class, () -> electionService.addCandidateToElection(mockId, mockCandidateRequest));
     }
 }

@@ -1,6 +1,8 @@
 package com.skroflin.evoting_rest_api.controller;
 
+import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
+import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
 import com.skroflin.evoting_rest_api.service.ElectionService;
 import jakarta.validation.Valid;
@@ -39,5 +41,15 @@ public class ElectionController {
     @PreAuthorize("hasAnyRole('ADMIN', 'VOTER')")
     public ResponseEntity<ElectionResponse> getElectionById(@PathVariable UUID id) {
         return ResponseEntity.ok(electionService.getElectionById(id));
+    }
+
+    @PostMapping("/{electionId}/add-candidate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CandidateResponse> addCandidateToElection(
+            @PathVariable UUID electionId,
+            @Valid @RequestBody CandidateRequest candidateRequest
+    ) {
+        CandidateResponse candidateResponse = electionService.addCandidateToElection(electionId, candidateRequest);
+        return new ResponseEntity<>(candidateResponse, HttpStatus.CREATED);
     }
 }

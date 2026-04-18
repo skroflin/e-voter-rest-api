@@ -1,11 +1,18 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
+import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
+import com.skroflin.evoting_rest_api.exceptions.election.CandidateAlreadyExists;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
+import com.skroflin.evoting_rest_api.mappers.CandidateMapper;
 import com.skroflin.evoting_rest_api.mappers.ElectionMapper;
+import com.skroflin.evoting_rest_api.models.Candidate;
 import com.skroflin.evoting_rest_api.models.Election;
+import com.skroflin.evoting_rest_api.repository.CandidateRepository;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import com.skroflin.evoting_rest_api.service.ElectionService;
 import com.skroflin.evoting_rest_api.service.validation.ElectionValidator;
@@ -25,6 +32,32 @@ public class ElectionServiceImpl implements ElectionService {
     private final ElectionRepository electionRepository;
     private final ElectionMapper electionMapper;
     private final ElectionValidator electionValidator;
+    private final CandidateRepository candidateRepository;
+    private final CandidateMapper candidateMapper;
+
+    @Override
+    @Transactional
+    public CandidateResponse addCandidateToElection(UUID electionId, CandidateRequest candidateRequest) {
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election not found"));
+
+        boolean exists = election.getCandidates().stream()
+                .anyMatch(c -> c.getCandidateFullName().equalsIgnoreCase(candidateRequest.name()));
+
+        if (exists) {
+            throw new CandidateAlreadyExists("Candidate with this name already exists in this election");
+        }
+
+        if (election.getElectionStatus() != ElectionStatus.PREPARATION) {
+            throw new ElectionNotOpenException("Cannot add candidates to an election that has already started or ended.");
+        }
+
+        Candidate candidate = candidateMapper.toEntity(candidateRequest);
+        candidate.setElection(election);
+        Candidate savedCandidate = candidateRepository.save(candidate);
+
+        return candidateMapper.toResponse(savedCandidate);
+    }
 
     @Override
     @Transactional

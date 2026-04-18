@@ -6,6 +6,7 @@ import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.models.Election;
+import com.skroflin.evoting_rest_api.repository.CandidateRepository;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,8 @@ public class ElectionControllerIT {
     private MockMvc mockMvc;
     @Autowired
     private ElectionRepository electionRepository;
+    @Autowired
+    private CandidateRepository candidateRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
@@ -124,4 +127,30 @@ public class ElectionControllerIT {
         mockMvc.perform(get("/api/v1/elections/{id}", randomMockId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("POST /elections/{id}/add-candidate - Success")
+    void addCandidate_Success() throws Exception {
+        Election mockElection = new Election();
+        mockElection.setElectionName("Test Election");
+        mockElection.setElectionStatus(ElectionStatus.PREPARATION);
+        Election savedMockElection = electionRepository.saveAndFlush(mockElection);
+
+        CandidateRequest mockCandidateRequest = new CandidateRequest(
+                "John Doe", "Test bio"
+        );
+
+        mockMvc.perform(post("/api/v1/elections/{id}/add-candidate", savedMockElection.getElectionUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mockCandidateRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("John Doe"))
+                .andExpect(jsonPath("$.bio").value("Test bio"));
+
+        var candidates = candidateRepository.findAll();
+        boolean found = candidates.stream()
+                .anyMatch(c -> c.getCandidateFullName().equals("John Doe")
+                        && c.getElection().getElectionUUID().equals(savedMockElection.getElectionUUID()));
+        assertTrue(found, "Candidate should be saved in the database for the correct election");    }
 }

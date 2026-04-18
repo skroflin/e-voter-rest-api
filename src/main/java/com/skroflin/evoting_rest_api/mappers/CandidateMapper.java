@@ -1,6 +1,7 @@
 package com.skroflin.evoting_rest_api.mappers;
 
 import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
+import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.models.Candidate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,4 +12,9 @@ public interface CandidateMapper {
     @Mapping(target = "candidateFullName", source = "name")
     @Mapping(target = "description", source = "bio")
     Candidate toEntity(CandidateRequest candidateRequest);
+
+    @Mapping(target = "id", source = "candidateUUID")
+    @Mapping(target = "name", source = "candidateFullName")
+    @Mapping(target = "bio", source = "description")
+    CandidateResponse toResponse(Candidate candidate);
 }
