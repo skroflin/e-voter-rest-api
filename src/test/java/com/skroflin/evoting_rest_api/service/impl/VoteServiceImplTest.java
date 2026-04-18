@@ -1,8 +1,10 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
 import com.skroflin.evoting_rest_api.dto.request.VoteRequest;
+import com.skroflin.evoting_rest_api.dto.response.ElectionResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.VoteResponse;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
+import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.TokenAlreadyUsedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
 import com.skroflin.evoting_rest_api.models.Candidate;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -111,5 +114,60 @@ public class VoteServiceImplTest {
         when(usedTokenRepository.existsById(mockHashedToken)).thenReturn(true);
 
         assertThrows(TokenAlreadyUsedException.class, () -> voteService.castVote(mockElectionId, mockVoteRequest));
+    }
+
+    @Test
+    void getResults_ShouldReturnResults_WhenElectionClosed() {
+        UUID mockElectionId = UUID.randomUUID();
+
+        Election mockElection = new Election();
+        mockElection.setElectionName("Test Election");
+        mockElection.setDescription("Test description");
+        mockElection.setElectionEndTime(LocalDateTime.now().minusHours(1));
+        mockElection.setElectionStatus(ElectionStatus.CLOSED);
+
+        Object[] row = new Object[]{"John Doe", UUID.randomUUID(), 10L};
+        List<Object[]> mockRawResults = List.<Object[]>of(row);
+
+        when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
+        when(voteRepository.countVotesByCandidates(mockElectionId)).thenReturn(mockRawResults);
+
+        ElectionResultResponse mockElectionResult = voteService.getResults(mockElectionId);
+
+        assertTrue(mockElectionResult.isClosed());
+        assertEquals(1, mockElectionResult.results().size());
+        assertEquals("John Doe", mockElectionResult.results().get(0).fullName());
+        assertEquals(10L, mockElectionResult.results().get(0).voteCount());
+        verify(voteRepository, times(1)).countVotesByCandidates(mockElectionId);
+    }
+
+    @Test
+    void getResults_shouldHideResults_whenElectionActive() {
+        UUID mockElectionId = UUID.randomUUID();
+
+        Election mockElection = new Election();
+        mockElection.setElectionName("Test Election");
+        mockElection.setDescription("Test description");
+        mockElection.setElectionEndTime(LocalDateTime.now().plusDays(1));
+        mockElection.setElectionStatus(ElectionStatus.ACTIVE);
+
+        when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
+
+        ElectionResultResponse mockElectionResult = voteService.getResults(mockElectionId);
+
+        assertFalse(mockElectionResult.isClosed());
+        assertTrue(mockElectionResult.results().isEmpty());
+        assertTrue(mockElectionResult.message().contains("The election results will be available after the elections: " + mockElection.getElectionEndTime()));
+
+        verify(voteRepository, never()).countVotesByCandidates(any());
+    }
+
+    @Test
+    void getResults_shouldThrowException_whenNotFound() {
+        UUID electionId = UUID.randomUUID();
+
+        when(electionRepository.findById(electionId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> voteService.getResults(electionId));
     }
 }
