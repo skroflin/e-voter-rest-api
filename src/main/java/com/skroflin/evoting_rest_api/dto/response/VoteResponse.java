@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record VoteResponse(
-    UUID voteId,
+    UUID voteUUID,
     LocalDateTime castAt,
     String message,
     String electionName

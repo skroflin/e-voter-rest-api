@@ -2,6 +2,8 @@ package com.skroflin.evoting_rest_api.service.impl;
 
 import com.skroflin.evoting_rest_api.dto.ValidatedVoteData;
 import com.skroflin.evoting_rest_api.dto.request.VoteRequest;
+import com.skroflin.evoting_rest_api.dto.response.CandidateResultResponse;
+import com.skroflin.evoting_rest_api.dto.response.ElectionResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.VoteResponse;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import static com.skroflin.evoting_rest_api.util.HashingUtils.*;
 
@@ -65,6 +68,40 @@ public class VoteServiceImpl implements VoteService {
         );
     }
 
+    @Override
+    public ElectionResultResponse getResults(UUID electionId) {
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election not found: " + electionId));
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean isClosed = election.getElectionEndTime() != null && now.isAfter(election.getElectionEndTime());
+
+        if (!isClosed) {
+            return new ElectionResultResponse(
+                    election.getElectionName(),
+                    false,
+                    List.of(),
+                    "The election results will be available after the elections: " + election.getElectionEndTime()
+            );
+        }
+
+        List<Object[]> rawResults = voteRepository.countVotesByCandidates(electionId);
+
+        List<CandidateResultResponse> results = rawResults.stream()
+                .map(row -> new CandidateResultResponse(
+                        (String) row[0],
+                        (UUID) row[1],
+                        (Long) row[2]))
+                .toList();
+
+        return new ElectionResultResponse(
+                election.getElectionName(),
+                true,
+                results,
+                "Final election results"
+        );
+    }
+
     private ValidatedVoteData validateAndGetVoteData(UUID electionId, VoteRequest voteRequest) {
         Election election = electionRepository.findById(electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Election not found"));
@@ -79,7 +116,7 @@ public class VoteServiceImpl implements VoteService {
         }
 
         Candidate candidate = candidateRepository.findByCandidateUUIDAndElectionElectionUUID(
-                voteRequest.candidateId(), electionId)
+                voteRequest.candidateUUID(), electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidate not found"));
 
         return new ValidatedVoteData(election, candidate, hashedToken);

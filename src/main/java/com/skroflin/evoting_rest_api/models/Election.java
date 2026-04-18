@@ -62,7 +62,7 @@ public class Election {
     @Column(name = "election_status")
     private ElectionStatus electionStatus;
 
-    @OneToMany(mappedBy = "election", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Candidate> candidates = new ArrayList<>();
 
     @Column(

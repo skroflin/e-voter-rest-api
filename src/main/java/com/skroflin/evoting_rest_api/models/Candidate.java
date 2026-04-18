@@ -3,13 +3,13 @@ package com.skroflin.evoting_rest_api.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "candidates")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Candidate {

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record VoteRequest(
         @NotNull(message = "Candidate id is required")
-        UUID candidateId,
+        UUID candidateUUID,
         @NotNull(message = "Vote token is required")
         String token
 ) { }
