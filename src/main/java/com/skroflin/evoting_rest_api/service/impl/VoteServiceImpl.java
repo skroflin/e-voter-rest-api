@@ -11,7 +11,9 @@ import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.AlreadyVotedException;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.TokenAlreadyUsedException;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionEndedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotStartedException;
 import com.skroflin.evoting_rest_api.models.Candidate;
 import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.models.UsedToken;
@@ -19,6 +21,7 @@ import com.skroflin.evoting_rest_api.models.Vote;
 import com.skroflin.evoting_rest_api.repository.*;
 import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.service.VoteService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +50,7 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
+    @Transactional
     public VoteResponse castVote(UUID electionId, VoteRequest voteRequest) {
 
         String currentUserEmail = SecurityUtil.getCurrentUserEmail();
@@ -89,31 +93,21 @@ public class VoteServiceImpl implements VoteService {
         Election election = electionRepository.findById(electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Election not found: " + electionId));
 
-        LocalDateTime now = LocalDateTime.now();
-        boolean isClosed = election.getElectionEndTime() != null && now.isAfter(election.getElectionEndTime());
-
-        if (!isClosed) {
+        if (election.getElectionEndTime() == null ||LocalDateTime.now().isBefore(election.getElectionEndTime())) {
             return new ElectionResultResponse(
                     election.getElectionName(),
                     false,
                     List.of(),
-                    "The election results will be available after the elections: " + election.getElectionEndTime()
+                    "Results available after: " + election.getElectionEndTime()
             );
         }
 
-        List<Object[]> rawResults = voteRepository.countVotesByCandidates(electionId);
-
-        List<CandidateResultResponse> results = rawResults.stream()
-                .map(row -> new CandidateResultResponse(
-                        (String) row[0],
-                        (UUID) row[1],
-                        (Long) row[2]))
-                .toList();
+        List<CandidateResultResponse> resultResponses = voteRepository.countVotesByCandidates(electionId);
 
         return new ElectionResultResponse(
                 election.getElectionName(),
                 true,
-                results,
+                resultResponses,
                 "Final election results"
         );
     }
@@ -121,6 +115,14 @@ public class VoteServiceImpl implements VoteService {
     private ValidatedVoteData validateAndGetVoteData(UUID electionId, VoteRequest voteRequest) {
         Election election = electionRepository.findById(electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Election not found"));
+
+        if (election.getElectionStartTime() != null && LocalDateTime.now().isBefore(election.getElectionStartTime())) {
+            throw new ElectionNotStartedException("Election has not started yet");
+        }
+
+        if (election.getElectionEndTime() != null && LocalDateTime.now().isAfter(election.getElectionEndTime())) {
+            throw new ElectionEndedException("Election has already ended");
+        }
 
         if (election.getElectionStatus() != ElectionStatus.ACTIVE) {
             throw new ElectionNotOpenException("Election is: " + election.getElectionStatus() + ", voting is not allowed");

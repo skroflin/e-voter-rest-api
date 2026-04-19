@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -127,10 +128,10 @@ public class VoteServiceImplTest {
         mockElection.setElectionStatus(ElectionStatus.CLOSED);
 
         Object[] row = new Object[]{"John Doe", UUID.randomUUID(), 10L};
-        List<Object[]> mockRawResults = List.<Object[]>of(row);
+        List<Object[]> mockRawResults = (List<Object[]>) List.of(row);
 
         when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
-        when(voteRepository.countVotesByCandidates(mockElectionId)).thenReturn(mockRawResults);
+        when(voteRepository.countVotesByCandidates(mockElectionId)).thenReturn((List) mockRawResults);
 
         ElectionResultResponse mockElectionResult = voteService.getResults(mockElectionId);
 

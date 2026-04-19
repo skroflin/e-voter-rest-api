@@ -1,9 +1,6 @@
 package com.skroflin.evoting_rest_api.exceptions;
 
-import com.skroflin.evoting_rest_api.exceptions.election.CandidateAlreadyExists;
-import com.skroflin.evoting_rest_api.exceptions.election.ElectionAlreadyExistsException;
-import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
-import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
+import com.skroflin.evoting_rest_api.exceptions.election.*;
 import com.skroflin.evoting_rest_api.exceptions.user.*;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
@@ -35,6 +32,11 @@ public class ApiExceptionHandler {
                 ZonedDateTime.now(ZoneId.of("Z"))
         );
         return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({ElectionNotStartedException.class, ElectionEndedException.class})
+    public ResponseEntity<Object> handleElectionTimeException(RuntimeException e) {
+        return buildResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
