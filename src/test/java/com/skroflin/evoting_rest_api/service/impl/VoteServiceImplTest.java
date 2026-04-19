@@ -1,20 +1,21 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.config.security.SecurityUtil;
 import com.skroflin.evoting_rest_api.dto.request.VoteRequest;
+import com.skroflin.evoting_rest_api.dto.response.CandidateResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResultResponse;
 import com.skroflin.evoting_rest_api.dto.response.VoteResponse;
 import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.TokenAlreadyUsedException;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionEndedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
+import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotStartedException;
 import com.skroflin.evoting_rest_api.models.Candidate;
 import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.models.UsedToken;
 import com.skroflin.evoting_rest_api.models.Vote;
-import com.skroflin.evoting_rest_api.repository.CandidateRepository;
-import com.skroflin.evoting_rest_api.repository.ElectionRepository;
-import com.skroflin.evoting_rest_api.repository.UsedTokenRepository;
-import com.skroflin.evoting_rest_api.repository.VoteRepository;
+import com.skroflin.evoting_rest_api.repository.*;
 import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.util.HashingUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,13 +23,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +44,8 @@ public class VoteServiceImplTest {
     private CandidateRepository candidateRepository;
     @Mock
     private UsedTokenRepository usedTokenRepository;
+    @Mock
+    private ElectionParticipationRepository electionParticipationRepository;
     @Mock
     private CryptoService cryptoService;
 
@@ -127,11 +128,15 @@ public class VoteServiceImplTest {
         mockElection.setElectionEndTime(LocalDateTime.now().minusHours(1));
         mockElection.setElectionStatus(ElectionStatus.CLOSED);
 
-        Object[] row = new Object[]{"John Doe", UUID.randomUUID(), 10L};
-        List<Object[]> mockRawResults = (List<Object[]>) List.of(row);
+        CandidateResultResponse row = new CandidateResultResponse(
+                "John Doe",
+                UUID.randomUUID(),
+                10L
+        );
+        List<CandidateResultResponse> mockResults = List.of(row);
 
         when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
-        when(voteRepository.countVotesByCandidates(mockElectionId)).thenReturn((List) mockRawResults);
+        when(voteRepository.countVotesByCandidates(mockElectionId)).thenReturn(mockResults);
 
         ElectionResultResponse mockElectionResult = voteService.getResults(mockElectionId);
 
@@ -170,5 +175,46 @@ public class VoteServiceImplTest {
         when(electionRepository.findById(electionId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> voteService.getResults(electionId));
+    }
+
+    @Test
+    void testVoteCast_shouldThrowExceptionNotStarted() {
+        UUID mockElectionId = UUID.randomUUID();
+        Election mockElection = new Election();
+        mockElection.setElectionStatus(ElectionStatus.ACTIVE);
+        mockElection.setElectionStartTime(LocalDateTime.now().plusHours(1));
+
+        try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+            mockedSecurityUtil.when(SecurityUtil::getCurrentUserEmail).thenReturn("test@example.com");
+            when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
+            assertThrows(ElectionNotStartedException.class, () -> {
+                voteService.castVote(mockElectionId, new VoteRequest(UUID.randomUUID(), "test-token"));
+            });
+        }
+
+        when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
+
+        assertThrows(ElectionNotStartedException.class, () -> {
+            voteService.castVote(mockElectionId, new VoteRequest(UUID.randomUUID(), "test-token"));
+        });
+    }
+
+    @Test
+    void testVoteCast_shouldThrowExceptionEnded() {
+        UUID mockElectionId = UUID.randomUUID();
+        Election mockElection = new Election();
+        mockElection.setElectionStatus(ElectionStatus.ACTIVE);
+        mockElection.setElectionStartTime(LocalDateTime.now().minusHours(2));
+        mockElection.setElectionEndTime(LocalDateTime.now().minusMinutes(10));
+
+        try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+            mockedSecurityUtil.when(SecurityUtil::getCurrentUserEmail).thenReturn("test@example.com");
+            when(electionRepository.findById(mockElectionId)).thenReturn(Optional.of(mockElection));
+            assertThrows(ElectionEndedException.class, () -> {
+                voteService.castVote(mockElectionId, new VoteRequest(UUID.randomUUID(), "test-token"));
+            });
+
+            verify(electionParticipationRepository, never()).existsByEligibleVoterEmailAndElectionElectionUUID(any(), any());
+        }
     }
 }

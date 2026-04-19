@@ -53,13 +53,12 @@ public class VoteServiceImpl implements VoteService {
     @Transactional
     public VoteResponse castVote(UUID electionId, VoteRequest voteRequest) {
 
-        String currentUserEmail = SecurityUtil.getCurrentUserEmail();
+        ValidatedVoteData voteData = validateAndGetVoteData(electionId, voteRequest);
 
+        String currentUserEmail = SecurityUtil.getCurrentUserEmail();
         if (electionParticipationRepository.existsByEligibleVoterEmailAndElectionElectionUUID(currentUserEmail, electionId)) {
             throw new AlreadyVotedException("User already voted on this election");
         }
-
-        ValidatedVoteData voteData = validateAndGetVoteData(electionId, voteRequest);
 
         UsedToken usedToken = new UsedToken();
         usedToken.setTokenHash(voteData.hashedToken());
