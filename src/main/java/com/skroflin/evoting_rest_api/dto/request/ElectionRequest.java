@@ -7,11 +7,11 @@ import java.util.List;
 
 public record ElectionRequest(
         @NotBlank(message = "Title is mandatory")
-        @Size(min = 100, max = 200)
+        @Size(min = 100, max = 500)
         String title,
 
         @NotBlank(message = "Description is mandatory")
-        @Size(min = 500, max = 1000)
+        @Size(min = 500, max = 2000)
         String description,
 
         @NotNull(message = "Start date is mandatory")
@@ -23,6 +23,7 @@ public record ElectionRequest(
         LocalDateTime endDate,
 
         @NotEmpty(message = "At least two candidates are required")
+        @Size(min = 2, message = "At least two candidates are required")
         List<CandidateRequest> candidates
 ) {
 }
