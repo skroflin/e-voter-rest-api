@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: evoting-db
+    restart: always
+    environment:
+      POSTGRES_DB: e_voting_db
+      POSTGRES_USER: e_voting_user
+      POSTGRES_PASSWORD: tuh5phu+T=Stls_u6rap
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: evoting-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/e_voting_db
+      SPRING_DATASOURCE_USERNAME: e_voting_user
+      SPRING_DATASOURCE_PASSWORD: tuh5phu+T=Stls_u6rap
+
+      SECURITY_JWT_SECRET_KEY: EeO+j2DQT2dvoIHsvFD6tuRi8h+Ty2yMc//7w7Aa34Y=
+      SECURITY_JWT_EXPIRATION_TIME: 7200000
+
+      SPRING_MAIL_HOST: smtp.mailersend.net
+      SPRING_MAIL_PORT: 2525
+      SPRING_MAIL_USERNAME: MS_kg7fAr@test-51ndgwv8rvqlzqx8.mlsender.net
+      SPRING_MAIL_PASSWORD: mssp.GOswccv.x2p0347rw7ygzdrn.4l5Hk1N
+
+      SPRING_FLYWAY_ENABLED: "true"
+    restart: on-failure
+
+volumes:
+  db-data:
