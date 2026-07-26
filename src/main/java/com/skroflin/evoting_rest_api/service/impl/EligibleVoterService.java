@@ -4,6 +4,7 @@ import com.skroflin.evoting_rest_api.config.jwt.JwtService;
 import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
 import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
 import com.skroflin.evoting_rest_api.dto.response.LoginResponse;
+import com.skroflin.evoting_rest_api.enums.Role;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
@@ -44,6 +45,7 @@ public class EligibleVoterService implements AuthService {
 
         EligibleVoter newVoter = authMapper.toEntity(registerRequest);
         newVoter.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
+        newVoter.setRole(Role.ROLE_VOTER);
         newVoter.setEnabled(false);
         newVoter.setTokenIssued(false);
 

@@ -2,31 +2,22 @@ package com.skroflin.evoting_rest_api.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.Arrays;
 
+@Getter
+@AllArgsConstructor
 public enum ElectionStatus {
 
-    PREPARATION("Preparation", 1),
-    ACTIVE("Active", 2),
-    CLOSED("Closed", 3),
+    PREPARATION("Preparation", 0),
+    ACTIVE("Active", 1),
+    CLOSED("Closed", 2),
     UNKNOWN("Unknown", -1);
 
     private final String name;
     private final int value;
-
-    ElectionStatus(String name, int value) {
-        this.name = name;
-        this.value = value;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getValue() {
-        return value;
-    }
 
     @JsonCreator
     public static ElectionStatus fromValue(Integer value) {
