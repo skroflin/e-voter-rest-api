@@ -3,19 +3,19 @@ package com.skroflin.evoting_rest_api.util;
 public final class EmailTemplateUtil {
 
     private EmailTemplateUtil() {
-        // Privatni konstruktor spriječava instanciranje utility klase
     }
 
     public static String buildVerificationEmailTemplate(String code) {
         return """
             <!DOCTYPE html>
             <html>
+
             <head>
                 <meta charset="UTF-8">
                 <style>
                     body {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        background: linear-gradient(135deg, #f4f7fb 0%, #eef4ff 100%);
+                        background: linear-gradient(135deg, #f4f7fb 0%%, #eef4ff 100%%);
                         margin: 0;
                         padding: 32px 16px;
                         color: #1f2937;
@@ -32,7 +32,7 @@ public final class EmailTemplateUtil {
                     }
 
                     .email-header {
-                        background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+                        background: linear-gradient(135deg, #4b5563 0%%, #6b7280 100%%);
                         color: #ffffff;
                         padding: 28px 24px 24px;
                         text-align: center;
@@ -42,7 +42,7 @@ public final class EmailTemplateUtil {
                         width: 54px;
                         height: 54px;
                         margin: 0 auto 12px;
-                        border-radius: 50%;
+                        border-radius: 50%%;
                         background: rgba(255, 255, 255, 0.16);
                         display: flex;
                         align-items: center;
@@ -76,7 +76,7 @@ public final class EmailTemplateUtil {
                     }
 
                     .code-box {
-                        background: linear-gradient(135deg, #f8f9fb 0%, #f1f3f6 100%);
+                        background: linear-gradient(135deg, #f8f9fb 0%%, #f1f3f6 100%%);
                         border: 2px dashed #6b7280;
                         border-radius: 12px;
                         padding: 18px 16px;
@@ -85,7 +85,7 @@ public final class EmailTemplateUtil {
                         letter-spacing: 8px;
                         color: #4b5563;
                         display: inline-block;
-                        margin: 4px 0 24px;
+                        margin: 4px 0 12px;
                         min-width: 220px;
                     }
 
@@ -97,8 +97,11 @@ public final class EmailTemplateUtil {
                         border-radius: 999px;
                         display: inline-flex;
                         align-items: center;
+                        justify-content: center;
                         gap: 8px;
                         border: 1px solid #e5e7eb;
+                        width: fit-content;
+                        margin: 0 auto;
                     }
 
                     .badge-expiry svg {
@@ -130,13 +133,17 @@ public final class EmailTemplateUtil {
                         <h1>E-Voting System</h1>
                     </div>
                     <div class="email-body">
-                        <p>Dear user,<br>We received a request to verify your account. Your one-time verification code is:</p>
+                        <p>Dear user,<br>we received a request to verify your account. Your one-time verification code is:</p>
+                        
                         <div class="code-box">%s</div>
-                        <div class="badge-expiry">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 5h-2v6l5 3 1-1.73-4-2.27Z"/>
-                            </svg>
-                            <span>This code is valid for <strong>15 minutes</strong></span>
+                        
+                        <div>
+                            <div class="badge-expiry">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 5h-2v6l5 3 1-1.73-4-2.27Z"/>
+                                </svg>
+                                <span>This code is valid for <strong>15 minutes</strong></span>
+                            </div>
                         </div>
                     </div>
                     <div class="email-footer">
@@ -144,6 +151,7 @@ public final class EmailTemplateUtil {
                     </div>
                 </div>
             </body>
+
             </html>
             """.formatted(code);
     }

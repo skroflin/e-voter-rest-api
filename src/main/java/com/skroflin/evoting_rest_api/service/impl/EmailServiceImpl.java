@@ -25,7 +25,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("noreply@test-51ndgwv8rvqlzqx8.mlsender.net");
             helper.setTo(to);
-            helper.setSubject("E-voting | Verifikacijski kod za prijavu");
+            helper.setSubject("E-voting | Verification code for registration");
 
             String htmlContent = buildVerificationEmailTemplate(code);
             helper.setText(htmlContent, true);
