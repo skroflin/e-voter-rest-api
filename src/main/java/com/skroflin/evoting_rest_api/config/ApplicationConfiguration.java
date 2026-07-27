@@ -1,5 +1,6 @@
 package com.skroflin.evoting_rest_api.config;
 
+import com.skroflin.evoting_rest_api.repository.AdminRepository;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class ApplicationConfiguration {
 
     private final EligibleVoterRepository eligibleVoterRepository;
+    private final AdminRepository adminRepository;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -32,8 +35,10 @@ public class ApplicationConfiguration {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> eligibleVoterRepository.findByUsername(username)
-                .or(() -> eligibleVoterRepository.findByEmail(username))
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with identification" + " " + username));
+                .map(voter -> (UserDetails) voter)
+                .or(() -> eligibleVoterRepository.findByEmail(username).map(voter -> (UserDetails) voter))
+                .or(() -> adminRepository.findByUsername(username).map(admin -> (UserDetails) admin))
+                .orElseThrow(() -> new UsernameNotFoundException("User with the username" + " " + username + " " + "not found."));
     }
 
     @Bean

@@ -11,7 +11,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum Role {
     ROLE_SUPER_ADMIN("Super admin", 0),
-    ROLE_ELECTION_ADMIN("Active", 1),
+    ROLE_ELECTION_ADMIN("Admin", 1),
     ROLE_VOTER("Voter", 2),
     UNKNOWN("Unknown", -1);
 

@@ -8,9 +8,11 @@ import com.skroflin.evoting_rest_api.enums.Role;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
+import com.skroflin.evoting_rest_api.models.AdminUser;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
 import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.models.UserVerification;
+import com.skroflin.evoting_rest_api.repository.AdminRepository;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
 import com.skroflin.evoting_rest_api.repository.UserVerificationRepository;
 import com.skroflin.evoting_rest_api.service.AuthService;
@@ -21,6 +23,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +34,7 @@ import org.springframework.stereotype.Service;
 public class EligibleVoterService implements AuthService {
 
     private final EligibleVoterRepository eligibleVoterRepository;
+    private final AdminRepository adminRepository;
     private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserVerificationRepository userVerificationRepository;
@@ -81,17 +87,27 @@ public class EligibleVoterService implements AuthService {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        var voter = eligibleVoterRepository.findByUsername(request.username())
-                .or(() -> eligibleVoterRepository.findByEmail(request.username()))
-                .orElseThrow();
-        String jwtToken = jwtService.generateToken(voter);
+        UserDetails user = eligibleVoterRepository.findByUsername(request.username())
+                .map(voter -> (UserDetails) voter)
+                .or(() -> eligibleVoterRepository.findByEmail(request.username()).map(voter -> (UserDetails) voter))
+                .or(() -> adminRepository.findByUsername(request.username()).map(admin -> (UserDetails) admin))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.username()));
+
+        String jwtToken = jwtService.generateToken(user);
+
+        String roleDisplayName = Role.UNKNOWN.getName();
+        if (user instanceof AdminUser admin) {
+            roleDisplayName = admin.getRole().getName();
+        } else if (user instanceof EligibleVoter voter) {
+            roleDisplayName = voter.getRole().getName();
+        }
 
         return LoginResponse.builder()
                 .token(jwtToken)
                 .type("bearer")
                 .expiresIn(jwtService.getExpirationTime())
-                .username(voter.getUsername())
-                .role(voter.getRole().getName())
+                .username(user.getUsername())
+                .role(roleDisplayName)
                 .build();
     }
 }
