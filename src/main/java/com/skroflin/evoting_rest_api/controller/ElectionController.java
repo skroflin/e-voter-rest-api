@@ -24,27 +24,27 @@ public class ElectionController {
     private final ElectionService electionService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<ElectionResponse> createElection(@RequestBody @Valid ElectionRequest electionRequest) {
         ElectionResponse electionResponse = electionService.createElection(electionRequest);
         return new ResponseEntity<>(electionResponse, HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'VOTER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_VOTER')")
     public ResponseEntity<Page<ElectionResponse>> getAllElections(
             Pageable pageable) {
         return ResponseEntity.ok(electionService.getAllElections(pageable));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'VOTER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_VOTER')")
     public ResponseEntity<ElectionResponse> getElectionById(@PathVariable UUID id) {
         return ResponseEntity.ok(electionService.getElectionById(id));
     }
 
     @PostMapping("/{electionId}/add-candidate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<CandidateResponse> addCandidateToElection(
             @PathVariable UUID electionId,
             @Valid @RequestBody CandidateRequest candidateRequest
