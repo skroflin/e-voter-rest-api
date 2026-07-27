@@ -2,6 +2,7 @@ package com.skroflin.evoting_rest_api.controller;
 
 import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
+import com.skroflin.evoting_rest_api.dto.request.ElectionStatusUpdateRequest;
 import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
 import com.skroflin.evoting_rest_api.service.ElectionService;
@@ -9,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,10 +33,22 @@ public class ElectionController {
         return new ResponseEntity<>(electionResponse, HttpStatus.CREATED);
     }
 
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN')")
+    public ResponseEntity<ElectionResponse> updateElectionStatus(
+            @PathVariable UUID id,
+            @RequestBody @Valid ElectionStatusUpdateRequest request
+    ) {
+        ElectionResponse response = electionService.updateElectionStatus(id, request.electionStatus());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_VOTER')")
     public ResponseEntity<Page<ElectionResponse>> getAllElections(
-            Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "electionUUID", direction = Sort.Direction.ASC)
+            Pageable pageable
+    ) {
         return ResponseEntity.ok(electionService.getAllElections(pageable));
     }
 

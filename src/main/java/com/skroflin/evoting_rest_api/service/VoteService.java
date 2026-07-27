@@ -14,4 +14,5 @@ public interface VoteService {
     VoteResponse castVote(UUID electionId, VoteRequest voteRequest);
     ElectionResultResponse getResults(UUID electionId);
     Page<VoterVoteHistoryResponse> getVoterHistory(Pageable pageable);
+    String generateVotingToken(UUID electionId);
 }

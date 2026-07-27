@@ -77,6 +77,17 @@ public class ElectionServiceImpl implements ElectionService {
     }
 
     @Override
+    public ElectionResponse updateElectionStatus(UUID electionId, ElectionStatus newElectionStatus) {
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election with id: " + electionId + " not found"));
+
+        electionValidator.validateStatusTransition(election.getElectionStatus(), newElectionStatus);
+        election.setElectionStatus(newElectionStatus);
+        Election updatedElection = electionRepository.save(election);
+        return electionMapper.toResponse(updatedElection);
+    }
+
+    @Override
     @Transactional
     public Page<ElectionResponse> getAllElections(Pageable pageable) {
         return electionRepository.findAll(pageable)

@@ -17,14 +17,13 @@ public interface ElectionParticipationRepository extends JpaRepository<ElectionP
     boolean existsByEligibleVoterEmailAndElectionElectionUUID(String email, UUID electionId);
 
     @Query("""
-            select new com.skroflin.evoting_rest_api.dto.response.VoterVoteHistoryResponse(
-                p.election.electionUUID,
-                p.election.electionName,
-                p.votedAt
-            )
-            from ElectionParticipation p
-            where p.eligibleVoter.email = :email
-            order by p.votedAt desc
-        """)
-    Page<VoterVoteHistoryResponse> findHistoryByVoterEmail(@Param("email") String email, Pageable pageable);
+        SELECT new com.skroflin.evoting_rest_api.dto.response.VoterVoteHistoryResponse(
+            p.election.electionUUID,
+            p.election.electionName,
+            p.votedAt
+        )
+        FROM ElectionParticipation p
+        WHERE p.eligibleVoter.email = :identifier OR p.eligibleVoter.username = :identifier
+    """)
+    Page<VoterVoteHistoryResponse> findHistoryByVoterEmail(@Param("identifier") String identifier, Pageable pageable);
 }

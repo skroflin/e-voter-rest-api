@@ -1,8 +1,10 @@
 package com.skroflin.evoting_rest_api.service.validation;
 
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
+import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionAlreadyExistsException;
 import com.skroflin.evoting_rest_api.exceptions.election.InvalidElectionException;
+import com.skroflin.evoting_rest_api.models.Election;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,12 @@ public class ElectionValidator {
 
         if (electionRepository.existsByElectionName(electionRequest.title())) {
             throw new ElectionAlreadyExistsException("An election with this title already exists");
+        }
+    }
+
+    public void validateStatusTransition(ElectionStatus currentStatus, ElectionStatus newStatus) {
+        if (currentStatus == ElectionStatus.CLOSED && newStatus != ElectionStatus.CLOSED) {
+            throw new IllegalArgumentException("Cannot change status of an election that has already finished");
         }
     }
 }

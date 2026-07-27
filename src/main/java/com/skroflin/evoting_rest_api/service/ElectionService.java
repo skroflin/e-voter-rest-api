@@ -4,6 +4,7 @@ import com.skroflin.evoting_rest_api.dto.request.CandidateRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
 import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
+import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,4 +16,5 @@ public interface ElectionService {
     Page<ElectionResponse> getAllElections(Pageable pageable);
     ElectionResponse getElectionById(UUID id);
     CandidateResponse addCandidateToElection(UUID electionId, CandidateRequest candidateRequest);
+    ElectionResponse updateElectionStatus(UUID electionId, ElectionStatus newElectionStatus);
 }

@@ -14,10 +14,7 @@ import com.skroflin.evoting_rest_api.exceptions.TokenAlreadyUsedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionEndedException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotStartedException;
-import com.skroflin.evoting_rest_api.models.Candidate;
-import com.skroflin.evoting_rest_api.models.Election;
-import com.skroflin.evoting_rest_api.models.UsedToken;
-import com.skroflin.evoting_rest_api.models.Vote;
+import com.skroflin.evoting_rest_api.models.*;
 import com.skroflin.evoting_rest_api.repository.*;
 import com.skroflin.evoting_rest_api.service.CryptoService;
 import com.skroflin.evoting_rest_api.service.VoteService;
@@ -41,7 +38,42 @@ public class VoteServiceImpl implements VoteService {
     private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
     private final UsedTokenRepository usedTokenRepository;
+    private final IssuedTokenRepository issuedTokenRepository;
     private final ElectionParticipationRepository electionParticipationRepository;
+    private final EligibleVoterRepository eligibleVoterRepository;
+
+    @Override
+    @Transactional
+    public String generateVotingToken(UUID electionId) {
+        String currentUsername = SecurityUtil.getCurrentUserEmail();
+
+        EligibleVoter voter = eligibleVoterRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("Voter not found with email: " + currentUsername));
+
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election not found with id: " + electionId));
+
+        if (electionParticipationRepository.existsByEligibleVoterEmailAndElectionElectionUUID(voter.getEmail(), election.getElectionUUID())) {
+            throw new AlreadyVotedException("Voting token has already been issued or user already voted in this election!");
+        }
+
+        String rawVotingToken = UUID.randomUUID() + "-" + UUID.randomUUID();
+
+        IssuedToken issuedToken = new IssuedToken();
+        issuedToken.setTokenUUID(UUID.randomUUID());
+        issuedToken.setVoter(voter);
+        issuedToken.setIssuedAt(LocalDateTime.now());
+        issuedToken.setCreatedAt(LocalDateTime.now());
+        issuedTokenRepository.save(issuedToken);
+
+        ElectionParticipation participation = new ElectionParticipation();
+        participation.setEligibleVoter(voter);
+        participation.setElection(election);
+        participation.setVotedAt(LocalDateTime.now());
+        electionParticipationRepository.save(participation);
+
+        return rawVotingToken;
+    }
 
     @Override
     public Page<VoterVoteHistoryResponse> getVoterHistory(Pageable pageable) {
