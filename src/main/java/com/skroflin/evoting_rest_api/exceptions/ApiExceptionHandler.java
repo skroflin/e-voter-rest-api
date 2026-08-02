@@ -191,4 +191,16 @@ public class ApiExceptionHandler {
         log.error("Critical error - error with cryptographic signature: {}", e.getMessage());
         return buildResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(EmailDeliveryFailedException.class)
+    public ResponseEntity<Object> handleEmailDeliveryFailed(EmailDeliveryFailedException e) {
+        log.error("Email delivery error: {}", e.getMessage());
+        return buildResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(EmailServiceException.class)
+    public ResponseEntity<Object> handleEmailServiceException(EmailServiceException e) {
+        log.error("Email service unavailable: {}", e.getMessage());
+        return buildResponse(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+    }
 }

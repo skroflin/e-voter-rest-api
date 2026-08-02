@@ -1,8 +1,6 @@
 package com.skroflin.evoting_rest_api.controller;
 
-import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
-import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
-import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.dto.request.*;
 import com.skroflin.evoting_rest_api.dto.response.LoginResponse;
 import com.skroflin.evoting_rest_api.service.AuthService;
 import jakarta.validation.Valid;
@@ -36,5 +34,17 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        String response = authService.processForgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        String response = authService.processResetPassword(request);
+        return ResponseEntity.ok(response);
     }
 }

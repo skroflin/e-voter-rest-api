@@ -1,16 +1,18 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
 import com.skroflin.evoting_rest_api.config.jwt.JwtService;
-import com.skroflin.evoting_rest_api.dto.request.LoginRequest;
-import com.skroflin.evoting_rest_api.dto.request.VerificationRequest;
+import com.skroflin.evoting_rest_api.dto.request.*;
 import com.skroflin.evoting_rest_api.dto.response.LoginResponse;
 import com.skroflin.evoting_rest_api.enums.Role;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
+import com.skroflin.evoting_rest_api.exceptions.user.EmailDeliveryFailedException;
+import com.skroflin.evoting_rest_api.exceptions.user.EmailServiceException;
+import com.skroflin.evoting_rest_api.exceptions.user.InvalidPasswordException;
 import com.skroflin.evoting_rest_api.exceptions.user.verification.InvalidVerificationCodeException;
+import com.skroflin.evoting_rest_api.exceptions.user.verification.VerificationCodeExpiredException;
 import com.skroflin.evoting_rest_api.mappers.AuthMapper;
 import com.skroflin.evoting_rest_api.models.AdminUser;
 import com.skroflin.evoting_rest_api.models.EligibleVoter;
-import com.skroflin.evoting_rest_api.dto.request.RegisterRequest;
 import com.skroflin.evoting_rest_api.models.UserVerification;
 import com.skroflin.evoting_rest_api.repository.AdminRepository;
 import com.skroflin.evoting_rest_api.repository.EligibleVoterRepository;
@@ -23,11 +25,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,9 +64,12 @@ public class EligibleVoterService implements AuthService {
         String code = verificationHelper.generateVerificationCode();
         verificationHelper.saveVerificationCode(savedVoter, code);
 
-        emailService.sendVerificationEmail(registerRequest.getEmail(), code);
-
-        return "Verification code sent to" + " " + registerRequest.getEmail();
+        try {
+            emailService.sendVerificationEmail(registerRequest.getEmail(), code);
+            return "Verification code sent to" + " " + registerRequest.getEmail();
+        } catch (EmailServiceException e) {
+            throw new EmailDeliveryFailedException("Failed to send verification email to" + " " + registerRequest.getEmail(), e);
+        }
     }
 
     @Override
@@ -109,5 +116,47 @@ public class EligibleVoterService implements AuthService {
                 .username(user.getUsername())
                 .role(roleDisplayName)
                 .build();
+    }
+
+    @Override
+    public String processForgotPassword(ForgotPasswordRequest request) {
+        Optional<EligibleVoter> voterOptional = eligibleVoterRepository.findByEmail(request.email());
+
+        EligibleVoter voter = voterOptional.get();
+        userVerificationRepository.deleteByEligibleVoter(voter);
+
+        String code = verificationHelper.generateVerificationCode();
+        verificationHelper.saveVerificationCode(voter, code);
+
+        try {
+            emailService.sendPasswordResetEmail(voter.getEmail(), code);
+        } catch (EmailServiceException e) {
+            throw new EmailDeliveryFailedException("Failed to send password reset email to" + " " + voter.getEmail(), e);
+        }
+
+        return "Reset code sent to email:" + " " + request.email();
+    }
+
+    @Override
+    public String processResetPassword(ResetPasswordRequest request) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new InvalidPasswordException("New password and confirmation password do not match!");
+        }
+
+        UserVerification verification = userVerificationRepository.findByVerificationCode(request.code())
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid or non-existent verification code"));
+
+        if (verification.getExpiryDate().isBefore(LocalDateTime.now())) {
+            userVerificationRepository.delete(verification);
+            throw new VerificationCodeExpiredException("Verification code has expired. Please request a new one!");
+        }
+
+        EligibleVoter voter = verification.getEligibleVoter();
+        voter.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        eligibleVoterRepository.save(voter);
+
+        userVerificationRepository.delete(verification);
+
+        return "Password successfully reset! You can now log in with your new password";
     }
 }

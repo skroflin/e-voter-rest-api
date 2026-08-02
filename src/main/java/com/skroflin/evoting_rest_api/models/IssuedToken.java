@@ -19,7 +19,7 @@ public class IssuedToken {
     @Column(name = "token_uuid")
     private UUID tokenUUID;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "voter_uuid")
     private EligibleVoter voter;
 

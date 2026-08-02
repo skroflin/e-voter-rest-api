@@ -1,10 +1,11 @@
 package com.skroflin.evoting_rest_api.service.impl;
 
+import com.skroflin.evoting_rest_api.exceptions.user.EmailServiceException;
 import com.skroflin.evoting_rest_api.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,26 @@ public class EmailServiceImpl implements EmailService {
 
             javaMailSender.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Unsuccessful e-mail verification code sent", e);
+            throw new EmailServiceException("Unsuccessful e-mail verification code sent", e);
+        }
+    }
+
+    @Override
+    public void sendPasswordResetEmail(String to, String code) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom("noreply@test-51ndgwv8rvqlzqx8.mlsender.net");
+            helper.setTo(to);
+            helper.setSubject("E-voting | Password reset");
+
+            String htmlContent = buildPasswordResetEmailTemplate(code);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            throw new EmailServiceException("Failed to send password reset mail", e);
         }
     }
 }

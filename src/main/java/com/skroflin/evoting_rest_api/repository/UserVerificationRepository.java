@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface UserVerificationRepository extends JpaRepository<UserVerification, UUID> {
 
     Optional<UserVerification> findByEligibleVoter(EligibleVoter eligibleVoter);
+    Optional<UserVerification> findByVerificationCode(String verificationCode);
+    void deleteByEligibleVoter(EligibleVoter eligibleVoter);
 }
