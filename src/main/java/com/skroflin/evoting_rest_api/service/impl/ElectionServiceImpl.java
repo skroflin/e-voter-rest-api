@@ -8,6 +8,7 @@ import com.skroflin.evoting_rest_api.enums.ElectionStatus;
 import com.skroflin.evoting_rest_api.exceptions.ResourceNotFoundException;
 import com.skroflin.evoting_rest_api.exceptions.election.CandidateAlreadyExists;
 import com.skroflin.evoting_rest_api.exceptions.election.ElectionNotOpenException;
+import com.skroflin.evoting_rest_api.filter.ElectionFilter;
 import com.skroflin.evoting_rest_api.mappers.CandidateMapper;
 import com.skroflin.evoting_rest_api.mappers.ElectionMapper;
 import com.skroflin.evoting_rest_api.models.Candidate;
@@ -16,10 +17,12 @@ import com.skroflin.evoting_rest_api.repository.CandidateRepository;
 import com.skroflin.evoting_rest_api.repository.ElectionRepository;
 import com.skroflin.evoting_rest_api.service.ElectionService;
 import com.skroflin.evoting_rest_api.service.validation.ElectionValidator;
+import com.skroflin.evoting_rest_api.util.specification.ElectionSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -89,8 +92,9 @@ public class ElectionServiceImpl implements ElectionService {
 
     @Override
     @Transactional
-    public Page<ElectionResponse> getAllElections(Pageable pageable) {
-        return electionRepository.findAll(pageable)
+    public Page<ElectionResponse> getAllElections(Pageable pageable, ElectionFilter electionFilter) {
+        Specification<Election> spec = ElectionSpecifications.withFilter(electionFilter);
+        return electionRepository.findAll(spec, pageable)
                 .map(electionMapper::toResponse);
     }
 

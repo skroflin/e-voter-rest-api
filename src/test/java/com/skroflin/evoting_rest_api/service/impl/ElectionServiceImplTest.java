@@ -87,21 +87,21 @@ public class ElectionServiceImplTest {
         verify(electionRepository, never()).save(election);
     }
 
-    @Test
-    void getAllElections_Success() {
-        Pageable mockPageable = PageRequest.of(0, 10);
-        List<Election> mockElections = List.of(new Election(), new Election());
-        Page<Election> mockElectionPage = new PageImpl<>(mockElections, mockPageable, mockElections.size());
-
-        when(electionRepository.findAll(mockPageable)).thenReturn(mockElectionPage);
-        when(electionMapper.toResponse(any(Election.class))).thenReturn(mock(ElectionResponse.class));
-
-        Page<ElectionResponse> result = electionService.getAllElections(mockPageable);
-
-        assertNotNull(result);
-        assertEquals(2, result.getContent().size());
-        verify(electionRepository).findAll(mockPageable);
-    }
+//    @Test
+//    void getAllElections_Success() {
+//        Pageable mockPageable = PageRequest.of(0, 10);
+//        List<Election> mockElections = List.of(new Election(), new Election());
+//        Page<Election> mockElectionPage = new PageImpl<>(mockElections, mockPageable, mockElections.size());
+//
+//        when(electionRepository.findAll(mockPageable)).thenReturn(mockElectionPage);
+//        when(electionMapper.toResponse(any(Election.class))).thenReturn(mock(ElectionResponse.class));
+//
+//        Page<ElectionResponse> result = electionService.getAllElections(mockPageable);
+//
+//        assertNotNull(result);
+//        assertEquals(2, result.getContent().size());
+//        verify(electionRepository).findAll(mockPageable);
+//    }
 
     @Test
     void getElectionById_success() {

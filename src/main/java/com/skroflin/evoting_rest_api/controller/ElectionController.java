@@ -5,6 +5,7 @@ import com.skroflin.evoting_rest_api.dto.request.ElectionRequest;
 import com.skroflin.evoting_rest_api.dto.request.ElectionStatusUpdateRequest;
 import com.skroflin.evoting_rest_api.dto.response.CandidateResponse;
 import com.skroflin.evoting_rest_api.dto.response.ElectionResponse;
+import com.skroflin.evoting_rest_api.filter.ElectionFilter;
 import com.skroflin.evoting_rest_api.service.ElectionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +48,10 @@ public class ElectionController {
     @PreAuthorize("hasAnyAuthority('ROLE_ELECTION_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_VOTER')")
     public ResponseEntity<Page<ElectionResponse>> getAllElections(
             @PageableDefault(page = 0, size = 10, sort = "electionUUID", direction = Sort.Direction.ASC)
-            Pageable pageable
+            Pageable pageable,
+            ElectionFilter electionFilter
     ) {
-        return ResponseEntity.ok(electionService.getAllElections(pageable));
+        return ResponseEntity.ok(electionService.getAllElections(pageable, electionFilter));
     }
 
     @GetMapping("/{id}")
