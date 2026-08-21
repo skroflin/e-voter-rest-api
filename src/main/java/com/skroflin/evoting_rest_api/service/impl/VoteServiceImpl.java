@@ -59,6 +59,10 @@ public class VoteServiceImpl implements VoteService {
 
         String rawVotingToken = UUID.randomUUID() + "-" + UUID.randomUUID();
 
+        voter.setTokenIssued(true);
+        voter.setTokenIssuedAt(LocalDateTime.now());
+        eligibleVoterRepository.save(voter);
+
         IssuedToken issuedToken = new IssuedToken();
         issuedToken.setTokenUUID(UUID.randomUUID());
         issuedToken.setVoter(voter);
