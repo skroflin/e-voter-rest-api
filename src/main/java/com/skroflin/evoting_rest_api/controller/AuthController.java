@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -20,10 +22,9 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         String response = authService.registerVoter(registerRequest);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
+        return new ResponseEntity<>(Map.of("message", response), HttpStatus.CREATED);    }
 
     @PostMapping("/verify")
     public ResponseEntity<String> verify(@Valid @RequestBody VerificationRequest verificationRequest) {

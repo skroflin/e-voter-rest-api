@@ -23,6 +23,7 @@ public interface ElectionMapper {
     @Mapping(target = "title", source = "electionName")
     @Mapping(target = "startTime", source = "electionStartTime")
     @Mapping(target = "endTime", source = "electionEndTime")
+    @Mapping(target = "status", source = "electionStatus")
     @Mapping(target = "isActive", expression = "java(election.getElectionStatus() == ElectionStatus.PREPARATION)")
     ElectionResponse toResponse(Election election);
 
