@@ -20,12 +20,21 @@ public enum ElectionStatus {
     private final int value;
 
     @JsonCreator
-    public static ElectionStatus fromValue(Integer value) {
-        if (value == null) return null;
-        return Arrays.stream(values())
-                .filter(r -> r.value == value)
-                .findFirst()
-                .orElse(UNKNOWN);
+    public static ElectionStatus fromValue(Object value) {
+        if (value instanceof Integer integerVal) {
+            for (ElectionStatus status : values()) {
+                if (status.value == integerVal || status.ordinal() == integerVal) {
+                    return status;
+                }
+            }
+        } else if (value instanceof String stringVal) {
+            for (ElectionStatus status : values()) {
+                if (status.name().equalsIgnoreCase(stringVal)) {
+                    return status;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Unknown status: " + value);
     }
 
     @JsonValue
